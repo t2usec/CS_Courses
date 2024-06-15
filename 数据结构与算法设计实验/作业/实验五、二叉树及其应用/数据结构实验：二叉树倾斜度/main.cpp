@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 
 struct TreeNode {
 	int val;
@@ -8,63 +7,44 @@ struct TreeNode {
 	struct TreeNode *right;
 };
 
-typedef struct {
-	int sum;
-	int tilt;
-} SumAndTilt;
-
-SumAndTilt findTiltAndSum(struct TreeNode* node) {
-	if (node == NULL) {
-		return (SumAndTilt){0, 0};
-	}
-	
-	SumAndTilt left = findTiltAndSum(node->left);
-	SumAndTilt right = findTiltAndSum(node->right);
-	
-	int current_tilt = abs(left.sum - right.sum);
-	int total_sum = left.sum + right.sum + node->val;
-	
-	return (SumAndTilt){total_sum, current_tilt + left.tilt + right.tilt};
+// 深度优先搜索辅助函数
+int dfs(struct TreeNode* root, int* tiltSum) {
+	if (root == NULL) return 0;
+	int leftSum = dfs(root->left, tiltSum);
+	int rightSum = dfs(root->right, tiltSum);
+	*tiltSum += abs(leftSum - rightSum);
+	return leftSum + rightSum + root->val;
 }
 
+// 实现findTilt函数
 int findTilt(struct TreeNode* root) {
-	SumAndTilt result = findTiltAndSum(root);
-	return result.tilt;
+	int tiltSum = 0;
+	dfs(root, &tiltSum);
+	return tiltSum;
 }
 
-struct TreeNode* CreatBitree_level() {
-	int data,front=1,rear=0;
-	struct TreeNode *t,*root,*q[1001];
-	while(scanf("%d", &data),data!=-1)
-	{
-		if (data==0)
-			t=NULL;
-		else {
-			t=(struct TreeNode*)malloc(sizeof(struct TreeNode));
-			t->val = data;
-			t->left = nullptr;
-			t->right = nullptr;
-		}
-		q[++rear]=t;
-		if(rear==1) {
-			root=t;
-		} else {
-			if(q[front]!=NULL) {
-				if (rear%2==0) {
-					q[front]->left=t;
-				}
-				else
-					q[front]->right=t;
-			}
-			if(rear%2==1)
-				front++;
-		}
+// 创建二叉树的辅助函数
+struct TreeNode* createTree(int arr[], int* index) {
+	if (arr[*index] == -1 || arr[*index] == 0) {
+		(*index)++;
+		return NULL;
 	}
-	return root;
+	struct TreeNode* newNode = (struct TreeNode*)malloc(sizeof(struct TreeNode));
+	newNode->val = arr[*index];
+	(*index)++;
+	newNode->left = createTree(arr, index);
+	newNode->right = createTree(arr, index);
+	return newNode;
 }
 
 int main() {
-	struct TreeNode* root = CreatBitree_level();
+	int n, index = 0;
+	scanf("%d", &n);
+	int arr[n];
+	for (int i = 0; i < n; i++) {
+		scanf("%d", &arr[i]);
+	}
+	struct TreeNode* root = createTree(arr, &index);
 	printf("%d\n", findTilt(root));
 	return 0;
 }
